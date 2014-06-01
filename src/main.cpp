@@ -10,7 +10,7 @@ using namespace std;
 
 int main() {
 	srand(0);
-
+	cout << fixed << "CPF: " << frequency() << endl;
 	menu();
 
 

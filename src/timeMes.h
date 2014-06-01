@@ -5,6 +5,7 @@
 #include <Windows.h>
 double startTimer();
 double endTimer();
+double frequency();
 double startTimer()
 {
     LARGE_INTEGER start;
@@ -20,6 +21,14 @@ double endTimer()
     QueryPerformanceCounter(&stop);
     SetThreadAffinityMask(GetCurrentThread(), oldmask);
     return stop.QuadPart;
+}
+double frequency()
+{
+	LARGE_INTEGER freq;
+	DWORD_PTR oldmask = SetThreadAffinityMask(GetCurrentThread(), 0);
+	QueryPerformanceFrequency(&freq);
+	SetThreadAffinityMask(GetCurrentThread(), oldmask);
+	return freq.QuadPart;
 }
 
 #endif // TIMEMES_H
