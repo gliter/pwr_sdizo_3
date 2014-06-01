@@ -6,10 +6,11 @@ using namespace std;
 #include <math.h>
 #include "Bag.h"
 #include "Tsp.h"
-//#include "menu.h"
+#include "menu.h"
 
 int main() {
 	srand(0);
+	menu();
 	/*Bag b(27, 5000); //Rozsadny czas
 	b.randItems();
 	cout << b;
