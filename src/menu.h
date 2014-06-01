@@ -15,6 +15,7 @@ using namespace std;
 #include <math.h>
 #include "Bag.h"
 #include "Tsp.h"
+#include "timeMes.h"
 
 void menu();
 void bagMenu();
@@ -214,6 +215,177 @@ void tspMenu() {
 
 }
 void sim() {
+	const unsigned instances = 100;
+	{
+		cout << "Testowanie plecaka..." << endl;
+
+		const unsigned paramNSize = 5;
+		const unsigned paramN2Size = 10;
+		const unsigned paramBSize = 3;
+
+
+		//unsigned paramN[paramNSize] = {5, 10, 15, 20, 25};
+		unsigned paramN[paramN2Size] = {15, 20, 23, 25, 27, 100, 200, 300, 400, 500};
+		unsigned paramB[paramBSize] = {1000, 2500, 5000};
+
+		ofstream CAFile("bag_checkAll.txt", ios::out);
+		ofstream GFile("bag_greedy.txt", ios::out);
+		ofstream DFile("bag_dynamic.txt", ios::out);
+
+		CAFile << "B\tN\ttime" << endl;
+		GFile << "B\tN\ttime" << endl;
+		DFile << "B\tN\ttime" << endl;
+
+		double start, end;
+
+		Bag **bags;
+		bags = new Bag*[instances];
+		cout << "Algorytm zachlanny..." << endl;
+		for(unsigned index_b = 0; index_b < paramBSize; index_b++) {
+			unsigned b = paramB[index_b];
+			for(unsigned index_n = 0; index_n < paramNSize; index_n++) {
+				unsigned n = paramN[index_n];
+				cout << (index_b * paramNSize + index_n) * 100 / (paramBSize * paramNSize) << "% ";
+				//Tworzenie plecakow
+				for(unsigned i = 0; i < instances; i++)
+					bags[i] = new Bag(n, b);
+
+				//Pomiar czasu dla zupelnego
+				start = startTimer();
+				for(unsigned i = 0; i < instances; i++) {
+					bags[i]->checkAll();
+				}
+				end = startTimer();
+				CAFile << fixed << b << "\t" << n << "\t" << (end - start)/instances << endl;
+
+				//Zwolnienie plecakow
+				for(unsigned i = 0; i < instances; i++)
+					delete bags[i];
+
+			}
+		}
+		cout << "100%" << endl;
+		cout << "Algorytm zachlanny i programowanie dynaiczne..." << endl;
+		for(unsigned index_b = 0; index_b < paramBSize; index_b++) {
+			unsigned b = paramB[index_b];
+			for(unsigned index_n = 0; index_n < paramN2Size; index_n++) {
+				unsigned n = paramN[index_n];
+				cout << (index_b * paramN2Size + index_n) * 100 / (paramBSize * paramN2Size) << "% ";
+				//Tworzenie plecakow
+				for(unsigned i = 0; i < instances; i++)
+					bags[i] = new Bag(n, b);
+
+				//Pomiar czasu dla zachlannego
+				start = startTimer();
+				for(unsigned i = 0; i < instances; i++) {
+					int* subSet = bags[i]->aproximate();
+					delete[] subSet;
+				}
+				end = startTimer();
+				GFile << fixed << b << "\t" << n << "\t" << (end - start)/instances << endl;
+
+				//Pomiar czasu dla programowania dynamicznego
+				start = startTimer();
+				for(unsigned i = 0; i < instances; i++) {
+					int* subSet = bags[i]->dynamic();
+					delete[] subSet;
+				}
+				end = startTimer();
+				DFile << fixed << b << "\t" << n << "\t" << (end - start)/instances << endl;
+
+				//Zwolnienie plecakow
+				for(unsigned i = 0; i < instances; i++)
+					delete bags[i];
+
+			}
+		}
+
+
+
+		cout << "100%" << endl;
+	}
+	{
+		cout << "Testowanie komiwojazera..." << endl;
+
+		const unsigned paramNSize = 5;
+		const unsigned paramN2Size = 10;
+
+		unsigned paramN[paramN2Size] = {2, 4, 6, 8, 10, 50, 100, 150, 200, 250};
+
+		ofstream CAFile("tsp_checkAll.txt", ios::out);
+		ofstream GFile("tsp_greedy.txt", ios::out);
+		ofstream DFile("tsp_alg2opt.txt", ios::out);
+
+		CAFile << "N\ttime" << endl;
+		GFile << "N\ttime" << endl;
+		DFile << "N\ttime" << endl;
+
+		double start, end;
+
+		Tsp **tsps;
+		tsps = new Tsp*[instances];
+
+		cout << "Przeglad zupelny..." << endl;
+		for(unsigned index_n = 0; index_n < paramNSize; index_n++) {
+			cout << index_n * 100 / paramNSize << "% ";
+
+			unsigned n = paramN[index_n];
+
+			//Tworzenie map miast
+			for(unsigned i = 0; i < instances; i++) {
+				tsps[i] = new Tsp(n);
+			}
+
+			//Pomiar czasu dla zupelnego
+			start = startTimer();
+			for(unsigned i = 0; i < instances; i++) {
+				unsigned *perm = tsps[i]->checkAll();
+				delete[] perm;
+			}
+			end = startTimer();
+			CAFile << fixed << n << "\t" << (end - start)/instances << endl;
+
+			//Zwalnianie map miast
+			for(unsigned i = 0; i < instances; i++) {
+				delete tsps[i];
+			}
+		}
+		cout << "100% " << endl;
+		cout << "Algorytm zachlanny i 2-opt..." << endl;
+		for(unsigned index_n = 0; index_n < paramN2Size; index_n++) {
+			cout << index_n * 100 / paramN2Size << "% ";
+
+			unsigned n = paramN[index_n];
+
+			//Tworzenie map miast
+			for(unsigned i = 0; i < instances; i++) {
+				tsps[i] = new Tsp(n);
+			}
+
+			//Pomiar czasu dla zachlannego
+			start = startTimer();
+			for(unsigned i = 0; i < instances; i++) {
+				unsigned *perm = tsps[i]->greedyAll();
+				delete[] perm;
+			}
+			end = startTimer();
+			GFile << fixed << n << "\t" << (end - start)/instances << endl;
+			//Pomiar czasu dla alg 2-opt
+			start = startTimer();
+			for(unsigned i = 0; i < instances; i++) {
+				unsigned *perm = tsps[i]->alg2opt();
+				delete[] perm;
+			}
+			end = startTimer();
+			DFile << fixed << n << "\t" << (end - start)/instances << endl;
+
+			//Zwalnianie map miast
+			for(unsigned i = 0; i < instances; i++) {
+				delete tsps[i];
+			}
+		}
+		cout << "100%" << endl;
+	}
 
 }
 

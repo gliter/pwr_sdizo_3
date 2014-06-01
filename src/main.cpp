@@ -10,7 +10,11 @@ using namespace std;
 
 int main() {
 	srand(0);
+
 	menu();
+
+
+
 	/*Bag b(27, 5000); //Rozsadny czas
 	b.randItems();
 	cout << b;
